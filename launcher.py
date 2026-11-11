@@ -52,13 +52,20 @@ def main():
     os.environ.setdefault("MPLCONFIGDIR", os.path.join(temp_root, "matplotlib"))
     os.environ.setdefault("TF_CPP_MIN_LOG_LEVEL", "2")
 
+    def _pause(message):
+        """Keep the console window open so a double-clicker can read the error."""
+        print(message)
+        try:
+            if sys.stdin and sys.stdin.isatty():
+                input("Press Enter to close this window...")
+        except Exception:
+            pass
+
     try:
         from src.theme import WEB_CSS
         from src.vision_web import create_app, TF_PRESENT
     except Exception as exc:  # pragma: no cover - startup failure dialogue
-        print("\nVision Studio could not start.\n")
-        print(f"  {type(exc).__name__}: {exc}\n")
-        input("Press Enter to close this window...")
+        _pause(f"\nVision Studio could not start.\n\n  {type(exc).__name__}: {exc}\n")
         return 1
 
     demo = create_app()
@@ -77,20 +84,23 @@ def main():
 
     _open_browser_later(url)
 
+    options = {
+        "server_name": "127.0.0.1",
+        "server_port": port,
+        "inbrowser": False,     # we open it ourselves, at the chosen port
+        "css": WEB_CSS,
+        "quiet": True,
+    }
+    favicon = os.path.join(root, "assets", "vision_studio.ico")
+    if os.path.exists(favicon):
+        options["favicon_path"] = favicon
+
     try:
-        demo.launch(
-            server_name="127.0.0.1",
-            server_port=port,
-            inbrowser=False,
-            css=WEB_CSS,
-            show_api=False,
-            quiet=True,
-        )
+        demo.launch(**options)
     except KeyboardInterrupt:
         pass
     except Exception as exc:  # pragma: no cover
-        print(f"\nServer stopped: {type(exc).__name__}: {exc}")
-        input("Press Enter to close this window...")
+        _pause(f"\nServer stopped: {type(exc).__name__}: {exc}")
         return 1
     return 0
 

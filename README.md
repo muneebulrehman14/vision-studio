@@ -114,12 +114,15 @@ pip install -r requirements.txt -r requirements-tf.txt pyinstaller
 python build_exe.py
 ```
 
-Output: `dist/Vision Studio/Vision Studio.exe` (~1.6 GB, TensorFlow included).
+Output: `dist/Vision Studio/Vision Studio.exe` (2.4 GB folder, TensorFlow included).
 Double-click it and:
 
 1. the server starts on the first free port (7860 unless that one is taken),
 2. your default browser opens on the running app,
 3. closing the console window stops the server.
+
+The first launch takes 20–40 seconds while TensorFlow unpacks itself; later launches are quick.
+No console? Check the window — it prints the URL and whether the models are available.
 
 The folder is self-contained — zip it and it runs on another 64-bit Windows PC with no Python
 installed. Model weights still download once on first use (into `~/.keras`), after which the app
