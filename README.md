@@ -83,11 +83,13 @@ camera metadata — all computed locally, without a single outbound API call.
 
 ## Quick start
 
+Runs fully on your own machine — all three models, no account, no API key. This is the complete
+experience; the Vercel deploy described further down is a lighter demo.
+
 ```bash
 git clone https://github.com/muneebulrehman14/vision-studio.git
 cd vision-studio
-pip install -r requirements.txt
-pip install -r requirements-tf.txt      # optional: enables object prediction
+pip install -r requirements.txt -r requirements-tf.txt
 python src/vision_web.py
 ```
 
@@ -97,8 +99,9 @@ The first time you use a model, Keras downloads its weights once
 (VGG16 ≈ 528 MB, ResNet50 ≈ 98 MB, EfficientNetB0 ≈ 29 MB) into `~/.keras/models`.
 After that, inference is fully offline.
 
-> TensorFlow is optional. Without it, every pixel-level analysis still works and the UI shows a
-> clear install hint instead of a broken result.
+> TensorFlow is only needed for object prediction. Install without `requirements-tf.txt` and the
+> app still runs, showing real pixel measurements instead of predictions — which is also how the
+> serverless demo behaves.
 
 ## Three ways to use it
 
