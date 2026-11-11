@@ -170,6 +170,12 @@ WEB_CSS = """
 .vr-compact .vr-track{grid-area:bar}
 .vr-compact .vr-pct{grid-area:pct;font-size:13px}
 .vr-compact .vr-thumb{width:104px;height:104px}
+/* label/value rows used by the analysis-only fallback card */
+.vr-kv{display:flex;justify-content:space-between;gap:14px;font-size:13px;
+  padding:5px 0;border-bottom:1px dashed #e5e9fb}
+.vr-kv:last-child{border-bottom:none}
+.vr-kv span:first-child{color:#3a4270;font-weight:600}
+.vr-kv span:last-child{font-weight:800;color:var(--ink);white-space:nowrap}
 .vr-pct{text-align:right;font-weight:800;color:var(--ink)}
 .vr-cap{margin-top:12px;padding:13px 15px;border-radius:14px;font-weight:600;
   line-height:1.4;font-size:14px;

@@ -1,0 +1,26 @@
+[project]
+name = "vision-studio"
+version = "1.0.0"
+description = "Three pretrained ImageNet models read your photos, plus quality, edge, colour and EXIF analysis."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "Muneeb Ul Rehman" }]
+dependencies = [
+    "fastapi>=0.115",
+    "gradio>=6.0",
+    "numpy>=1.24",
+    "Pillow>=10.0",
+]
+
+[project.optional-dependencies]
+# Full local/container install with object prediction (~1.4 GB):
+tf = ["tensorflow>=2.15"]
+# True Canny edges and CLI charts:
+extras = ["opencv-python>=4.8", "matplotlib>=3.8"]
+
+# Tell Vercel exactly which ASGI object to load. Without this Vercel also
+# inspects src/main.py (the CLI) and fails with PYTHON_ENTRYPOINT_NOT_FOUND,
+# because that module has no top-level `app`.
+[tool.vercel]
+entrypoint = "app:app"

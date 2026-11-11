@@ -12,6 +12,7 @@ Launch with:  python src/vision_web.py      (or via src/main.py --ui web)
 
 import base64
 import html
+import importlib.util
 import io
 import os
 import sys
@@ -21,12 +22,16 @@ from PIL import Image
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from analysis import list_images  # noqa: E402
+from analysis import analyze_image, list_images  # noqa: E402
 from caption import make_caption  # noqa: E402
 from classifier import Classifier, TFNotAvailable  # noqa: E402
 from theme import HERO, MODEL_COLORS, WEB_CSS  # noqa: E402
 
 CLF = Classifier()
+
+# True only when TensorFlow can actually be imported in this environment.
+# find_spec is cheap: it does not import TensorFlow or slow down the server.
+TF_PRESENT = importlib.util.find_spec("tensorflow") is not None
 
 
 # ===========================================================================
@@ -90,6 +95,56 @@ def _err(text):
     return f'<div class="vr-err">{html.escape(text)}</div>'
 
 
+def _notice(text):
+    """Amber, non-fatal notice (used when predictions are unavailable)."""
+    return f'<div class="vr-split">{html.escape(text)}</div>'
+
+
+def _analysis_card(img, note):
+    """Fallback card for hosts without TensorFlow: real pixel measurements.
+
+    This keeps the deployed app useful — resolution, sharpness, edges and
+    colour are computed locally and need no model at all.
+    """
+    import tempfile
+
+    fd, path = tempfile.mkstemp(suffix=".png")
+    os.close(fd)
+    try:
+        img.save(path)
+        flat = analyze_image(path, light=True)["flat"]
+    except Exception:
+        flat = {}
+    finally:
+        try:
+            os.remove(path)
+        except OSError:
+            pass
+
+    pairs = [
+        ("Resolution", f'{flat.get("width", "?")} x {flat.get("height", "?")}'),
+        ("Class", flat.get("resolution_class", "—")),
+        ("Megapixels", f'{flat.get("megapixels", 0)} MP'),
+        ("Sharpness", flat.get("sharpness", "—")),
+        ("Edge density", f'{flat.get("edge_density_pct", 0)}%'),
+        ("Dominant colour", flat.get("dominant_color", "—")),
+        ("Average colour", flat.get("avg_color", "—")),
+        ("Saturation", f'{flat.get("saturation_pct", 0)}%'),
+    ]
+    rows = "".join(
+        f'<div class="vr-kv"><span>{html.escape(k)}</span>'
+        f'<span>{html.escape(str(v))}</span></div>'
+        for k, v in pairs)
+    return (
+        '<div class="vr-grid"><div class="vr-card" style="--c:#7a5af0;--d:#5a3dc4">'
+        '<div class="vr-head"><span class="vr-badge">Pixel analysis</span></div>'
+        '<div class="vr-body">'
+        f'<img class="vr-thumb" alt="input image" src="data:image/jpeg;base64,{_thumb_b64(img)}">'
+        f'<div class="vr-bars">{rows}</div></div>'
+        f'<div class="vr-cap">{html.escape(note)}</div></div></div>'
+    )
+
+
 # ===========================================================================
 # tab callbacks
 # ===========================================================================
@@ -99,8 +154,11 @@ def ui_single(image, model_name):
     img = _open(image)
     try:
         preds, secs = predict(img, model_name)
-    except TFNotAvailable as e:
-        return _err(str(e))
+    except TFNotAvailable:
+        return _analysis_card(
+            img,
+            "Object prediction needs TensorFlow, which is not installed on this "
+            "host. The measurements on the left are computed from your real image.")
     except Exception as e:
         return _err(f"{model_name} failed: {e}")
     return f'<div class="vr-grid">{_card(img, model_name, preds, secs)}</div>'
@@ -116,8 +174,11 @@ def ui_compare(image):
             preds, secs = predict(img, name)
             tops[name] = preds[0][0]
             cards += _card(img, name, preds, secs, compact=True)
-    except TFNotAvailable as e:
-        return _err(str(e))
+    except TFNotAvailable:
+        return _notice(
+            "Three-model comparison needs TensorFlow, which is not installed on this host."
+        ) + _analysis_card(
+            img, "Comparison is disabled on this server; pixel analysis still runs here.")
     if not tops:
         return _err("No models produced a result.")
     if len(tops) > 1 and len(set(tops.values())) == 1:
@@ -160,8 +221,15 @@ def ui_folder(files, folder, model_name):
                 for p, im, preds in zip(chunk, imgs, decoded):
                     cards += _card(im, model_name, preds,
                                    filename=os.path.basename(p), mini=True)
-    except TFNotAvailable as e:
-        return _err(str(e))
+    except TFNotAvailable:
+        head = _notice(
+            "Batch prediction needs TensorFlow, which is not installed on this host.")
+        try:
+            first = _open(paths[0])
+        except Exception:
+            return head
+        return head + _analysis_card(
+            first, "Folder analysis is disabled on this server; pixel analysis still runs here.")
     return f'<div class="vr-grid">{cards}</div>'
 
 
@@ -169,6 +237,18 @@ def ui_folder(files, folder, model_name):
 # layout
 # ===========================================================================
 def build_ui(share=False):
+    """Build and launch the Gradio app (local use)."""
+    demo = create_app()
+    demo.launch(share=share, inbrowser=True, css=WEB_CSS)
+    return demo
+
+
+def create_app():
+    """Build the Gradio Blocks without launching it.
+
+    Used by `app.py` to mount the UI as an ASGI application (Vercel, Docker,
+    gunicorn/uvicorn). Nothing here starts a server, so it is safe to import.
+    """
     import gradio as gr
 
     names = CLF.available_models()
@@ -215,21 +295,24 @@ def build_ui(share=False):
                         out3 = gr.HTML(_msg("Upload several images, or type a folder path."))
                 b3.click(ui_folder, [files, folder, mdl3], out3)
 
+        if TF_PRESENT:
+            footer = ('First use of each model downloads its ImageNet weights once '
+                      '(VGG16 ≈ 528 MB, ResNet50 ≈ 98 MB, EfficientNetB0 ≈ 29 MB), '
+                      'cached in <code>~/.keras</code>.')
+        else:
+            footer = ('This host runs analysis-only: resolution, edges, quality, colour and '
+                      'EXIF work right now. Install <code>tensorflow</code> '
+                      '(or run the Docker image) to enable object prediction.')
         gr.Markdown(
             '<p style="text-align:center;color:#6b7399;font-size:12px;margin:18px 0 8px">'
-            'First use of each model downloads its ImageNet weights once '
-            '(VGG16 ≈ 528 MB, ResNet50 ≈ 98 MB, EfficientNetB0 ≈ 29 MB), '
-            'cached in <code>~/.keras</code>.</p>'
+            f'{footer}</p>'
         )
 
-    if share:
-        demo.launch(share=True, inbrowser=True, css=WEB_CSS)
-    else:
-        demo.launch(inbrowser=True, css=WEB_CSS)
     return demo
 
 
 def launch_ui(share=False):
+    """Entry point used by main.py --ui web."""
     return build_ui(share=share)
 
 

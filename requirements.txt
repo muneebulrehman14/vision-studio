@@ -2,17 +2,23 @@
 numpy>=1.24
 Pillow>=10.0
 
-# Web UI (Gradio command-center)
-gradio>=4.0
+# Web UI (Gradio command center) + ASGI entrypoint
+gradio>=6.0
+fastapi>=0.115
+
+# Charts in the CLI only (imported lazily, never at server start)
 matplotlib>=3.8
 
 # Desktop UI needs nothing extra (tkinter ships with Python on Windows/macOS;
 # on Linux: sudo apt install python3-tk)
 
-# Object prediction (optional but recommended)
-tensorflow>=2.15
-# or the lighter:
-# tensorflow-cpu>=2.15
-
 # True Canny edges (optional; the app falls back to a Sobel edge mask)
 opencv-python>=4.8
+
+# Object prediction is optional and lives in a separate file, because
+# TensorFlow is ~1.4 GB installed and does not fit in a Vercel Function:
+#
+#     pip install -r requirements-tf.txt
+#
+# Without it the app still runs and shows resolution / edges / quality /
+# colour / EXIF analysis, plus a clear note in place of predictions.

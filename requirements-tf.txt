@@ -1,0 +1,9 @@
+# Object prediction backend. Install this on top of requirements.txt:
+#
+#     pip install -r requirements-tf.txt
+#
+# TensorFlow is intentionally NOT in requirements.txt: it is ~1.4 GB installed,
+# which exceeds the 500 MB Vercel Function bundle limit. Keeping it separate
+# means `pip install -r requirements.txt` produces a deployable app, and
+# predictions stay one command away for local use, Docker, Render, or HF Spaces.
+tensorflow>=2.15

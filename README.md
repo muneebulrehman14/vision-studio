@@ -25,6 +25,7 @@
 - [Screenshots](#screenshots)
 - [Quick start](#quick-start)
 - [Three ways to use it](#three-ways-to-use-it)
+- [Deploy](#deploy)
 - [How it works](#how-it-works)
 - [Project structure](#project-structure)
 - [Tests](#tests)
@@ -86,6 +87,7 @@ camera metadata — all computed locally, without a single outbound API call.
 git clone https://github.com/muneebulrehman14/vision-studio.git
 cd vision-studio
 pip install -r requirements.txt
+pip install -r requirements-tf.txt      # optional: enables object prediction
 python src/vision_web.py
 ```
 
@@ -167,23 +169,66 @@ plus per-model `*_top1`, `*_conf_pct`, `*_caption`, `*_ms`.
 - **No shared-state bugs.** Model loading and inference are serialised behind a lock, so the
   Gradio server stays correct when several browser tabs fire at once.
 
+> TensorFlow is optional. Without it, every pixel-level analysis still works and the UI shows
+> real measurements plus a clear note instead of a broken result — that is exactly how the
+> Vercel deployment runs.
+
+## Deploy
+
+### Vercel — one click, analysis-only
+
+The repo ships a ready ASGI entrypoint (`app.py`), `vercel.json` and a slim dependency list, so
+`git push` is all a Vercel project needs. Vercel's Python runtime requires a top-level `app`
+object; `pyproject.toml` points it at `app:app` explicitly so it never picks up the CLI module.
+
+**Limitation, stated honestly:** a Vercel Function has a **500 MB** bundle limit, and TensorFlow
+alone is **1.4 GB** installed. Vercel therefore runs the analysis half of the app — resolution,
+sharpness, edges, colour, EXIF — and shows a notice where predictions would be. That is a
+deliberate split, not a bug.
+
+### Docker — everything, anywhere
+
+For the full three-model experience, run the container (Render, Railway, Fly.io, a VPS, or
+Hugging Face Spaces all work):
+
+```bash
+docker build -t vision-studio .
+docker run -p 7860:7860 vision-studio
+```
+
+The image installs `requirements-tf.txt`, so object prediction is enabled.
+
+### Any ASGI host
+
+`app.py` exposes `app`, so a plain uvicorn command works too:
+
+```bash
+pip install -r requirements.txt -r requirements-tf.txt
+uvicorn app:app --host 0.0.0.0 --port 7860
+```
+
 ## Project structure
 
 ```
 vision-studio/
+├── app.py                 # ASGI entrypoint: FastAPI + Gradio mounted, exports `app`
+├── vercel.json            # serverless config (duration, memory, bundle excludes)
+├── pyproject.toml         # Vercel entrypoint + dependency groups
+├── Dockerfile             # full-featured image with TensorFlow
+├── requirements.txt       # core + web (no TensorFlow → deployable)
+├── requirements-tf.txt    # object prediction, installed separately
 ├── src/
 │   ├── analysis.py        # edges, quality, colour, resolution, EXIF — pure NumPy/Pillow
 │   ├── classifier.py      # lazy TensorFlow registry for the three models
 │   ├── caption.py         # top-k predictions → one English sentence
 │   ├── theme.py           # shared light design system (colour, depth, CSS)
-│   ├── vision_web.py      # Gradio app
+│   ├── vision_web.py      # Gradio app (create_app / build_ui / launch_ui)
 │   ├── vision_desktop.py  # Tkinter studio
 │   ├── batch.py           # folder → CSV, headless
 │   └── main.py            # unified CLI entry point
 ├── tests/
 │   └── test_core.py       # 22 tests, no network, no TensorFlow needed
 ├── assets/                # screenshots + demo image
-├── requirements.txt
 └── LICENSE
 ```
 
@@ -202,7 +247,7 @@ TensorFlow nor network access.
 | Package | Needed for |
 |---|---|
 | `numpy`, `Pillow` | all pixel analysis |
-| `tensorflow` | object prediction (optional) |
+| `tensorflow` | object prediction (`requirements-tf.txt`) |
 | `gradio` | web app (optional) |
 | `opencv-python` | true Canny edges (optional) |
 | `matplotlib` | CLI charts (optional) |
