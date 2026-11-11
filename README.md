@@ -1,212 +1,225 @@
-<div align="center">
+﻿<div align="center">
 
-# 🚀 Vision Studio
+<img src="assets/screenshot_compare.png" alt="Vision Studio — comparing three pretrained models" width="920">
 
-**Professional Image Analysis with Pretrained ImageNet Models** — VGG16, ResNet50 & EfficientNetB0
+# Vision Studio
 
-![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
-![TensorFlow](https://img.shields.io/badge/TensorFlow-2.x-ff6f00.svg?logo=tensorflow)
-![Gradio](https://img.shields.io/badge/Gradio-4.x-orange.svg?logo=gradio)
-![Tkinter](https://img.shields.io/badge/GUI-Tkinter-lightgrey.svg?logo=python)
-![Status](https://img.shields.io/badge/status-production-brightgreen.svg)
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
+**See what a photo actually contains.** Three pretrained ImageNet models — VGG16, ResNet50 and EfficientNetB0 — read your image, compare notes, and tell you the answer. Plus the pixel-level facts: sharpness, edges, colour, resolution and EXIF.
 
-<br>
+[![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![TensorFlow](https://img.shields.io/badge/TensorFlow-2.x-FF6F00?logo=tensorflow&logoColor=white)](https://www.tensorflow.org/)
+[![Gradio](https://img.shields.io/badge/Gradio-6.x-F97316?logo=gradio&logoColor=white)](https://www.gradio.app/)
+[![Tests](https://img.shields.io/badge/tests-22%20passing-1f9d63)](tests/test_core.py)
+[![License](https://img.shields.io/badge/license-MIT-4f6bed)](LICENSE)
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=4f6bed&height=120&section=header" width="100%"/>
+**No training. No datasets. No API keys.** The weights are stock ImageNet and download once.
 
 </div>
 
 ---
 
-<div align="center">
+## Table of contents
 
-### ✨ One Image. Three Pretrained Models. Zero Training.
+- [Why this exists](#why-this-exists)
+- [What it does](#what-it-does)
+- [Screenshots](#screenshots)
+- [Quick start](#quick-start)
+- [Three ways to use it](#three-ways-to-use-it)
+- [How it works](#how-it-works)
+- [Project structure](#project-structure)
+- [Tests](#tests)
+- [Requirements](#requirements)
+- [Credits](#credits)
+- [License](#license)
 
-</div>
+---
+
+## Why this exists
+
+Most "image AI" demos are a single model behind a text box. You get one answer and no way to
+tell whether it is confident or guessing.
+
+Vision Studio gives you three independent opinions on the same photo and says out loud whether
+they agree. Alongside the prediction you get the measurements a photographer, e-commerce seller
+or dataset curator actually needs — resolution class, edge density, sharpness, dominant colour,
+camera metadata — all computed locally, without a single outbound API call.
+
+## What it does
+
+| | Capability | Detail |
+|---|---|---|
+| 🧠 | **Object recognition** | Top-5 ImageNet predictions with confidence, across 1000 classes |
+| 🤝 | **Three-model consensus** | VGG16 · ResNet50 · EfficientNetB0 side by side, with an agree / disagree banner |
+| ⚡ | **CPU inference** | 150–800 ms per model on a laptop CPU — no GPU required |
+| 📐 | **Resolution analysis** | Pixels, megapixels, aspect ratio, HD / 4K class, print size at 300 DPI |
+| 🔍 | **Edge analysis** | Sobel gradients, optional Canny, edge density, dominant direction |
+| ✨ | **Quality metrics** | Sharpness, brightness, contrast, entropy, highlight / shadow clipping |
+| 🎨 | **Colour analysis** | Dominant palette, average colour, saturation, warm / cool temperature |
+| 📋 | **EXIF reader** | Camera make and model, exposure, ISO, focal length, GPS presence |
+| 📊 | **Batch export** | Whole folders → a tidy CSV report |
+| 💻 | **Two front ends** | A Gradio web app and a Tkinter desktop studio sharing one design system |
+
+## Screenshots
 
 <table>
-  <tr>
-    <td><b>🖼️ What it sees</b></td>
-    <td>Object recognition across 1000 ImageNet classes with top-5 predictions per model</td>
-  </tr>
-  <tr>
-    <td><b>🤖 3 Models</b></td>
-    <td>VGG16 • ResNet50 • EfficientNetB0 — side-by-side comparison & consensus banner</td>
-  </tr>
-  <tr>
-    <td><b>📐 Resolution</b></td>
-    <td>Pixels, megapixels, aspect ratio, HD/4K class, print size, DPI</td>
-  </tr>
-  <tr>
-    <td><b>🔍 Edges</b></td>
-    <td>Sobel, Canny (optional), edge density, dominant direction</td>
-  </tr>
-  <tr>
-    <td><b>✨ Quality</b></td>
-    <td>Sharpness, brightness, contrast, entropy, clipping</td>
-  </tr>
-  <tr>
-    <td><b>🎨 Color</b></td>
-    <td>Dominant palette, average color, saturation, temperature</td>
-  </tr>
-  <tr>
-    <td><b>📋 EXIF</b></td>
-    <td>Camera make/model, exposure, ISO, focal length, GPS presence</td>
-  </tr>
-  <tr>
-    <td><b>📊 CSV Export</b></td>
-    <td>Batch export analysis reports for folders of images</td>
-  </tr>
+<tr>
+<td width="50%">
+
+**Single image** — one model, five ranked predictions, per-model accent colour and inference time.
+
+<img src="assets/screenshot_single.png" alt="Single image analysis">
+
+</td>
+<td width="50%">
+
+**Compare 3 models** — all three models on one photo, with a consensus banner.
+
+<img src="assets/screenshot_compare.png" alt="Three-model comparison">
+
+</td>
+</tr>
 </table>
 
----
-
-## 🎨 Screenshots / Preview
-
-<div align="center">
-
-### Web UI — Gradio Command Center
-
-<img src="https://capsule-render.vercel.app/api?type=sliced&color=4f6bed&height=100&section=footer" width="100%"/>
-
-| Single Image | Compare 3 Models | Batch / Folder |
-|:---:|:---:|:---:|
-| Floating 3D result card with per-model accent | Consensus banner (agree/disagree) | Card grid for multiple images |
-| Glow-filled animated confidence bars | Side-by-side VGG16 / ResNet50 / EfficientNetB0 | Folder path or multi-upload |
-
-</div>
-
----
-
-## 🚀 Quick Start
-
-### 1. Clone the repo
+## Quick start
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/vision-studio.git
+git clone https://github.com/muneebulrehman14/vision-studio.git
 cd vision-studio
-```
-
-### 2. Install dependencies
-
-```bash
 pip install -r requirements.txt
-```
-
-### 3. Run
-
-**Web UI (recommended):**
-```bash
 python src/vision_web.py
 ```
-Opens at `http://127.0.0.1:7860` automatically.
 
-**Desktop Studio:**
+The web app opens at **http://127.0.0.1:7860**.
+
+The first time you use a model, Keras downloads its weights once
+(VGG16 ≈ 528 MB, ResNet50 ≈ 98 MB, EfficientNetB0 ≈ 29 MB) into `~/.keras/models`.
+After that, inference is fully offline.
+
+> TensorFlow is optional. Without it, every pixel-level analysis still works and the UI shows a
+> clear install hint instead of a broken result.
+
+## Three ways to use it
+
+### 1. Web app
+
+```bash
+python src/vision_web.py            # local
+python src/vision_web.py --share    # temporary public Gradio link
+```
+
+Three tabs: **Single image**, **Compare 3 models**, **Batch / folder**.
+
+### 2. Desktop studio
+
 ```bash
 python src/vision_desktop.py
 ```
 
-**Headless / Batch:**
+A native Tkinter app with the same palette — 3D panels, pressable buttons, a floating image
+viewer with edge / colour / palette tabs, and a CSV export button.
+
+### 3. Command line
+
 ```bash
-python src/main.py photo.jpg --csv report.csv
-python src/batch.py photos/ --csv report.csv --recursive
+# one image, all facts printed
+python src/main.py photo.jpg
+
+# one image, one model, written to CSV
+python src/main.py photo.jpg --model EfficientNetB0 --csv report.csv
+
+# a whole folder (recursive)
+python src/batch.py photos/ --recursive --csv report.csv
+
+# pick the interface explicitly
+python src/main.py --ui web
+python src/main.py --ui desktop
 ```
 
----
+<details>
+<summary><b>CSV columns produced by a batch run</b></summary>
 
-## 🧩 Project Structure
+`file`, `format`, `width`, `height`, `megapixels`, `resolution_class`, `aspect_ratio`,
+`file_size_kb`, `sharpness_score`, `sharpness`, `brightness_pct`, `contrast_std`,
+`edge_density_pct`, `edge_direction`, `avg_color`, `dominant_color`, `saturation_pct`,
+plus per-model `*_top1`, `*_conf_pct`, `*_caption`, `*_ms`.
+
+</details>
+
+## How it works
+
+```
+                     ┌───────────────────────────────────────────┐
+    photo ─────────► │  analysis.py   pixel facts (no TF needed)  │ ──► quality · edges · colour · EXIF
+                     └───────────────────────────────────────────┘
+                     ┌───────────────────────────────────────────┐
+    photo ─────────► │  classifier.py  lazy TensorFlow registry   │ ──► VGG16        (138M params)
+                     │  224x224 preprocess → predict → decode     │ ──► ResNet50     ( 26M params)
+                     └───────────────────────────────────────────┘ ──► EfficientNetB0 (5.3M params)
+                                         │
+                                         ▼
+                     caption.py  top-k predictions ──► "This image contains an Espresso (91%)"
+```
+
+- **Lazy loading.** TensorFlow is imported the first time a prediction is requested, so the UI,
+  the pixel analysis and the test suite start instantly on machines without it.
+- **One registry, three models.** `Classifier` caches each model after first use, which is why
+  the second and third model in a comparison run 3–5x faster than the first.
+- **No shared-state bugs.** Model loading and inference are serialised behind a lock, so the
+  Gradio server stays correct when several browser tabs fire at once.
+
+## Project structure
 
 ```
 vision-studio/
-├── README.md
-├── requirements.txt
-├── .gitignore
-├── LICENSE
-├── assets/                 # Sample images & UI previews
-├── docs/                   # Documentation
-│   └── api.md
 ├── src/
-│   ├── __init__.py
-│   ├── main.py             # Unified CLI entry point
-│   ├── batch.py            # Headless folder → CSV runner
-│   ├── theme.py            # Shared light 3D design tokens
-│   ├── analysis.py         # Pixel-level core (edges, quality, color, EXIF)
-│   ├── caption.py          # Top-k predictions → English sentence
-│   ├── classifier.py       # Lazy TF classifiers (VGG16 / ResNet50 / EfficientNetB0)
-│   ├── vision_web.py       # Gradio command-center web UI
-│   └── vision_desktop.py   # Tkinter desktop studio
-└── tests/
-    └── test_core.py        # 23 TF-free tests
+│   ├── analysis.py        # edges, quality, colour, resolution, EXIF — pure NumPy/Pillow
+│   ├── classifier.py      # lazy TensorFlow registry for the three models
+│   ├── caption.py         # top-k predictions → one English sentence
+│   ├── theme.py           # shared light design system (colour, depth, CSS)
+│   ├── vision_web.py      # Gradio app
+│   ├── vision_desktop.py  # Tkinter studio
+│   ├── batch.py           # folder → CSV, headless
+│   └── main.py            # unified CLI entry point
+├── tests/
+│   └── test_core.py       # 22 tests, no network, no TensorFlow needed
+├── assets/                # screenshots + demo image
+├── requirements.txt
+└── LICENSE
 ```
 
----
-
-## 🛠️ Features in Detail
-
-### 🖼️ Image Classification
-Three pretrained ImageNet models analyze any photo and return top-5 predictions with confidence percentages and a plain-English caption.
-
-### 🤖 Model Comparison
-Upload one image and see all three models side-by-side. A smart banner shows whether they **agree** or **disagree**.
-
-### 📊 Batch Processing
-Analyze entire folders of images and export everything to a CSV report — resolution, edges, quality, color, EXIF, and model predictions.
-
-### 💻 Two Interfaces
-- **Web UI** — Gradio-powered command center with 3D cards, glowing bars, and animated hero
-- **Desktop Studio** — Tkinter app with 3D panels, pressable buttons, floating image viewer, and isometric logo
-
----
-
-## 🧪 Run Tests
+## Tests
 
 ```bash
 python tests/test_core.py
 ```
 
-All 23 tests pass without TensorFlow installed (analysis core is TF-free).
+22 checks covering resolution maths, edge and quality metrics, colour extraction, EXIF parsing,
+caption generation, folder discovery and CSV output. They run in about a second and need neither
+TensorFlow nor network access.
 
----
+## Requirements
 
-## 📦 Requirements
+| Package | Needed for |
+|---|---|
+| `numpy`, `Pillow` | all pixel analysis |
+| `tensorflow` | object prediction (optional) |
+| `gradio` | web app (optional) |
+| `opencv-python` | true Canny edges (optional) |
+| `matplotlib` | CLI charts (optional) |
 
-```text
-numpy>=1.24
-Pillow>=10.0
-gradio>=4.0
-matplotlib>=3.8
-tensorflow>=2.15   # optional — for object prediction
-opencv-python>=4.8 # optional — for true Canny edges
-```
+`tkinter` ships with CPython on Windows and macOS. On Debian/Ubuntu: `sudo apt install python3-tk`.
 
----
+## Credits
 
-## 🤝 Contributing
+- Demo photograph: ["A small cup of coffee"](https://commons.wikimedia.org/wiki/File:A_small_cup_of_coffee.JPG)
+  via Wikimedia Commons.
+- Pretrained weights: Keras Applications (ImageNet).
+- Design: one shared light theme (`src/theme.py`) drives both the web and desktop interfaces.
 
-Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
+## License
 
-1. Fork the repo
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
-
----
+MIT — see [LICENSE](LICENSE). Use it, fork it, ship it.
 
 <div align="center">
-
-### Made with ❤️ and pretrained weights
-
-[![GitHub stars](https://img.shields.io/github/stars/YOUR_USERNAME/vision-studio.svg?style=social)](https://github.com/YOUR_USERNAME/vision-studio/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/YOUR_USERNAME/vision-studio.svg?style=social)](https://github.com/YOUR_USERNAME/vision-studio/network/members)
-
-<img src="https://capsule-render.vercel.app/api?type=waving&color=4f6bed&height=100&section=footer" width="100%"/>
-
+<sub>Built with Python, TensorFlow and a stubborn refusal to call an external API.</sub>
 </div>

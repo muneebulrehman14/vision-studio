@@ -128,7 +128,24 @@ WEB_CSS = """
 .vr-chip b{color:var(--accent-d)}
 
 /* grid of floating 3D cards */
-.vr-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;padding:20px 4px}
+.vr-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:22px;padding:20px 4px}
+
+/* Gradio controls: give them the same depth language */
+.gradio-container button.primary{background:linear-gradient(180deg,#5c76f3,#4f6bed)!important;
+  border:none!important;color:#fff!important;font-weight:800!important;letter-spacing:.2px;
+  border-radius:14px!important;
+  box-shadow:0 5px 0 #3549c0,0 12px 20px rgba(30,40,90,.26)!important;
+  transition:transform .12s ease,box-shadow .12s ease!important}
+.gradio-container button.primary:hover{transform:translateY(-1px);
+  box-shadow:0 6px 0 #3549c0,0 16px 26px rgba(30,40,90,.30)!important}
+.gradio-container button.primary:active{transform:translateY(4px);
+  box-shadow:0 1px 0 #3549c0,0 5px 10px rgba(30,40,90,.22)!important}
+.gradio-container .block{border-radius:16px}
+.gradio-container .form,.gradio-container input[type=text],
+.gradio-container .wrap-inner{border-radius:12px!important}
+.gradio-container .upload-container,.gradio-container .image-container{
+  border-radius:16px!important;box-shadow:inset 0 0 0 1px var(--line),0 10px 22px rgba(30,40,90,.08)!important}
+.gradio-container .tab-nav button{font-weight:700!important;font-size:15px!important}
 
 /* model badge + time */
 .vr-head{display:flex;justify-content:space-between;align-items:center;margin:6px 0 12px}
@@ -142,9 +159,17 @@ WEB_CSS = """
   box-shadow:0 10px 22px rgba(30,40,90,.22);transition:transform .3s}
 .vr-card:hover .vr-thumb{transform:perspective(500px) rotateY(6deg) scale(1.05)}
 .vr-bars{flex:1;min-width:0}
-.vr-row{display:grid;grid-template-columns:minmax(64px,1.1fr) 2fr 48px;gap:8px;
-  align-items:center;margin:0 0 11px;font-size:13px}
-.vr-lab{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
+.vr-row{display:grid;grid-template-columns:minmax(92px,1.15fr) 1.7fr 50px;gap:10px;
+  align-items:center;margin:0 0 11px;font-size:12.5px}
+.vr-lab{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600;
+  color:#3a4270}
+/* compact (3-up compare) cards: stack label above a full-width bar */
+.vr-compact .vr-row{grid-template-columns:1fr auto;
+  grid-template-areas:"lab pct" "bar bar";gap:5px 8px;margin-bottom:13px}
+.vr-compact .vr-lab{grid-area:lab;font-size:13px}
+.vr-compact .vr-track{grid-area:bar}
+.vr-compact .vr-pct{grid-area:pct;font-size:13px}
+.vr-compact .vr-thumb{width:104px;height:104px}
 .vr-pct{text-align:right;font-weight:800;color:var(--ink)}
 .vr-cap{margin-top:12px;padding:13px 15px;border-radius:14px;font-weight:600;
   line-height:1.4;font-size:14px;

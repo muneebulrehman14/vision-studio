@@ -65,14 +65,15 @@ def _bars(preds, n=5):
     return rows
 
 
-def _card(img, name, preds, secs=None, filename=None, mini=False):
+def _card(img, name, preds, secs=None, filename=None, mini=False, compact=False):
     c, d = MODEL_COLORS[name]
     time_html = f'<span class="vr-time">{secs * 1000:.0f} ms</span>' if secs is not None else ""
     fname = f'<div class="vr-name">{html.escape(filename)}</div>' if filename else ""
     head = (f'<div class="vr-head"><span class="vr-badge">{name}</span>{time_html}</div>'
             if not mini else "")
+    extra = (" vr-mini" if mini else "") + (" vr-compact" if compact else "")
     return (
-        f'<div class="vr-card{" vr-mini" if mini else ""}" style="--c:{c};--d:{d}">'
+        f'<div class="vr-card{extra}" style="--c:{c};--d:{d}">'
         f'{head}{fname}'
         f'<div class="vr-body"><img class="vr-thumb" alt="input image" '
         f'src="data:image/jpeg;base64,{_thumb_b64(img)}">'
@@ -114,7 +115,7 @@ def ui_compare(image):
         for name in CLF.available_models():
             preds, secs = predict(img, name)
             tops[name] = preds[0][0]
-            cards += _card(img, name, preds, secs)
+            cards += _card(img, name, preds, secs, compact=True)
     except TFNotAvailable as e:
         return _err(str(e))
     if not tops:
@@ -190,10 +191,15 @@ def build_ui(share=False):
                 with gr.Row():
                     with gr.Column(scale=1):
                         img2 = gr.Image(type="pil", label="Image (jpg / png / webp)", height=320)
+                    with gr.Column(scale=1, elem_classes="vr-side"):
                         b2 = gr.Button("Compare VGG16 / ResNet50 / EfficientNetB0",
                                        variant="primary", size="lg")
-                    with gr.Column(scale=3):
-                        out2 = gr.HTML(_msg("Upload an image to compare the three models."))
+                        gr.Markdown(
+                            '<p style="color:#6b7399;font-size:13px;line-height:1.6;margin-top:10px">'
+                            'Runs all three pretrained models on the same photo and shows '
+                            'whether their top prediction <b>agrees</b>.</p>'
+                        )
+                out2 = gr.HTML(_msg("Upload an image to compare the three models."))
                 b2.click(ui_compare, img2, out2)
 
             with gr.Tab("Batch / folder"):
@@ -254,7 +260,7 @@ def _cli():
 
 
 def _run_single_cli(args):
-    preds, secs = predict(args.image, args.model)
+    preds, secs = predict(_open(args.image), args.model)
     print(f"\n[{args.model}] {os.path.basename(args.image)}  ({secs * 1000:.0f} ms)")
     for i, (label, conf) in enumerate(preds, 1):
         print(f"  {i}. {label:<28} {conf:6.2f}%")
@@ -279,7 +285,7 @@ def _run_single_cli(args):
 
 def _run_compare_cli(args):
     for name in CLF.available_models():
-        preds, secs = predict(args.image, name)
+        preds, secs = predict(_open(args.image), name)
         print(f"\n[{name}] {os.path.basename(args.image)}  ({secs * 1000:.0f} ms)")
         for i, (label, conf) in enumerate(preds, 1):
             print(f"  {i}. {label:<28} {conf:6.2f}%")
@@ -293,7 +299,7 @@ def _run_folder_cli(args):
         print(f"No images found in {args.folder}")
         return
     for p in paths:
-        preds, _ = predict(p, args.model)
+        preds, _ = predict(_open(p), args.model)
         print(f"{os.path.basename(p):<30} {make_caption(preds)}")
 
 
