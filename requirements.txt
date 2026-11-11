@@ -1,0 +1,18 @@
+# Core (required)
+numpy>=1.24
+Pillow>=10.0
+
+# Web UI (Gradio command-center)
+gradio>=4.0
+matplotlib>=3.8
+
+# Desktop UI needs nothing extra (tkinter ships with Python on Windows/macOS;
+# on Linux: sudo apt install python3-tk)
+
+# Object prediction (optional but recommended)
+tensorflow>=2.15
+# or the lighter:
+# tensorflow-cpu>=2.15
+
+# True Canny edges (optional; the app falls back to a Sobel edge mask)
+opencv-python>=4.8
